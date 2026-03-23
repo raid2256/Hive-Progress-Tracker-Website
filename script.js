@@ -1,10 +1,5 @@
-// GitHub repo info
 const REPO_OWNER = "raid2256";
 const REPO_NAME = "Hive-Progress-Tracker-Website";
-const BRANCH = "main";
-
-// GitHub Pages exposes WEB_TOKEN automatically
-const GITHUB_TOKEN = WEB_TOKEN;
 
 // XP tables
 const LEVEL_TABLES = {
@@ -49,23 +44,18 @@ function calculateLevel(mode, xp) {
   return Math.min(level, table.length);
 }
 
-async function updateSearchFile(username) {
-  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/search.txt`;
-
-  const res = await fetch(url, {
-    method: "PUT",
+async function triggerWorkflow(username) {
+  await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/fetch-user.yml/dispatches`, {
+    method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Accept": "application/vnd.github+json",
       "Authorization": `Bearer ${GITHUB_TOKEN}`
     },
     body: JSON.stringify({
-      message: `Search for ${username}`,
-      content: btoa(username),
-      branch: BRANCH
+      ref: "main",
+      inputs: { username }
     })
   });
-
-  return res.ok;
 }
 
 async function waitForStats(username) {
@@ -83,7 +73,7 @@ async function loadStats() {
 
   document.getElementById("results").innerHTML = "<p>Loading...</p>";
 
-  await updateSearchFile(user);
+  await triggerWorkflow(user);
   const data = await waitForStats(user);
 
   if (!data) {
