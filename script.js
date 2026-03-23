@@ -1,4 +1,4 @@
-const REPO_OWNER = "raid2256";
+const REPO_OWNER = "hive-tracker";
 const REPO_NAME = "Hive-Progress-Tracker-Website";
 
 async function createIssue(username) {
