@@ -1,0 +1,35 @@
+name: Fetch Hive Stats
+
+on:
+  schedule:
+    - cron: "*/1 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Process queue
+      run: |
+        mkdir -p data
+        if [ ! -s queue.txt ]; then exit 0; fi
+
+        while IFS= read -r USER; do
+          echo "Fetching $USER"
+          curl -s "http://api.playhive.com/v0/game/all/all/$USER" > data/$USER.json
+        done < queue.txt
+
+        echo "" > queue.txt
+
+    - name: Commit results
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add data/*.json queue.txt
+        git commit -m "Update stats" || echo "No changes"
+        git push
