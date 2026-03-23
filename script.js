@@ -1,6 +1,6 @@
 const REPO_OWNER = "raid2256";
 const REPO_NAME = "Hive-Progress-Tracker-Website";
-const WORKFLOW_FILE = "fetch-user.yml";
+const BRANCH = "main";
 
 // XP tables
 const LEVEL_TABLES = {
@@ -45,15 +45,22 @@ function calculateLevel(mode, xp) {
   return Math.min(level, table.length);
 }
 
-async function triggerWorkflow(username) {
-  await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_FILE}/dispatches`, {
-    method: "POST",
+async function updateSearchFile(username) {
+  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/search.txt`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  await fetch(url, {
+    method: "PUT",
     headers: {
-      "Accept": "application/vnd.github+json"
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      ref: "main",
-      inputs: { username }
+      message: `Search for ${username}`,
+      content: btoa(username),
+      sha: data.sha,
+      branch: BRANCH
     })
   });
 }
@@ -73,7 +80,7 @@ async function loadStats() {
 
   document.getElementById("results").innerHTML = "<p>Loading...</p>";
 
-  await triggerWorkflow(user);
+  await updateSearchFile(user);
   const data = await waitForStats(user);
 
   if (!data) {
