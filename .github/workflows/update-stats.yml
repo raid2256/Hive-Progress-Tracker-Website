@@ -1,27 +1,30 @@
-name: Update Hive Stats
+name: Fetch Hive User Stats
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch:
+  push:
+    paths:
+      - "search.txt"
 
 jobs:
-  update:
+  fetch:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
 
+    - name: Read username
+      id: readuser
+      run: echo "USER=$(cat search.txt)" >> $GITHUB_ENV
+
     - name: Fetch Hive Stats
       run: |
-        USER="AwtBear19"
         mkdir -p data
-        curl -s "https://api.playhive.com/v0/game/all/all/$USER" > data/$USER.json
+        curl -s "https://api.playhive.com/v0/game/all/all/${USER}" > data/${USER}.json
 
-    - name: Commit changes
+    - name: Commit results
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
-        git add data/*.json
-        git commit -m "Update stats" || echo "No changes"
+        git add data/${USER}.json
+        git commit -m "Updated stats for ${USER}" || echo "No changes"
         git push
