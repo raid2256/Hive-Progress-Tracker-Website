@@ -1,12 +1,12 @@
-name: Fetch Hive User Stats
+name: Fetch Hive Stats
 
 on:
-  push:
-    paths:
-      - "search.txt"
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   fetch:
@@ -16,9 +16,11 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Read username
-      id: readuser
-      run: echo "USER=$(cat search.txt)" >> $GITHUB_ENV
+    - name: Extract username
+      id: extract
+      run: |
+        USER=$(echo "${{ github.event.issue.title }}" | sed 's/FETCH://')
+        echo "USER=$USER" >> $GITHUB_ENV
 
     - name: Fetch Hive Stats
       run: |
@@ -32,3 +34,10 @@ jobs:
         git add data/${USER}.json
         git commit -m "Updated stats for ${USER}" || echo "No changes"
         git push
+
+    - name: Close issue
+      run: |
+        curl -X PATCH \
+        -H "Accept: application/vnd.github+json" \
+        -d '{"state":"closed"}' \
+        https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}
