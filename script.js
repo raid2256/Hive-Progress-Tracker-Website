@@ -1,4 +1,4 @@
-// XP tables (same as your Python version)
+// XP tables
 const LEVEL_TABLES = {
   bed: [0,150,450,900,1500,2250,3150,4200,5400,6750,8250,9900,11700,13650,15750,18000,20400,22950,25650,28500],
   sky: [0,150,450,900,1500,2250,3150,4200,5400,6750,8250,9900,11700,13650,15750,18000,20400,22950,25650,28500],
@@ -45,7 +45,8 @@ async function loadStats() {
   const user = document.getElementById("username").value;
   if (!user) return;
 
-  const res = await fetch(`https://api.playhive.com/v0/game/all/all/${user}`);
+  // CALL YOUR BACKEND, NOT THE HIVE API
+  const res = await fetch(`/api/hive/${user}`);
   const data = await res.json();
 
   const container = document.getElementById("results");
